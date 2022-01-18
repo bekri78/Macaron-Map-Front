@@ -25,40 +25,48 @@ export default function Map() {
   }, []);
 
   const [viewport, setViewport] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    latitude: 48.8609041,
-    longitude: 2.3437745,
-    zoom: 11,
-    bearing: 0,
-    pitch: 50, // degré
-    transitionDuration: 500,
+    width: Number(window.innerWidth),
+    height: Number(window.innerHeight),
+    latitude: Number(48.8609041),
+    longitude: Number(2.3437745),
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+    zoom: Number(11),
+    bearing: Number(0),
+    pitch: Number(50), // degré
+    transitionDuration: Number(500),
   });
 
   const onClick = (event: any) => {
-    if (event.feature) console.log(event.features);
+    if (event.features[0].properties.cluster) {
+      const feature = event.features[0];
+      const clusterId = feature.properties.cluster_id;
 
-    const feature = event.features[0];
-    const clusterId = feature.properties.cluster_id;
+      const mapboxSource = mapRef.current.getMap().getSource("earthquakes");
 
-    const mapboxSource = mapRef.current.getMap().getSource("earthquakes");
-
-    mapboxSource.getClusterExpansionZoom(
-      clusterId,
-      (err: Error, zoom: number) => {
-        if (err) {
-          console.log(err);
+      mapboxSource.getClusterExpansionZoom(
+        clusterId,
+        (err: Error, zoom: number) => {
+          if (err) {
+            console.log(err);
+          }
+          if (
+            feature.geometry.coordinates[0] &&
+            feature.geometry.coordinates[1]
+          ) {
+            setViewport({
+              ...viewport,
+              width: Number(window.innerWidth),
+              height: Number(window.innerHeight),
+              longitude: feature.geometry.coordinates[0],
+              latitude: feature.geometry.coordinates[1],
+              zoom,
+              transitionDuration: 500,
+            });
+          }
         }
-
-        setViewport({
-          ...viewport,
-          longitude: feature.geometry.coordinates[0],
-          latitude: feature.geometry.coordinates[1],
-          zoom,
-          transitionDuration: 500,
-        });
-      }
-    );
+      );
+    }
   };
 
   return (
@@ -70,23 +78,6 @@ export default function Map() {
       onClick={onClick}
       ref={mapRef}
     >
-      {/* {location &&
-        dataRating.map((data, index) => {
-          return (
-            <Marker
-              key={index}
-              latitude={data.coord_y}
-              longitude={data.coord_x}
-            >
-              <img
-                src="https://p7.hiclipart.com/preview/453/571/705/location-marker.jpg"
-                alt="marker"
-                width={10}
-                height={10}
-              />
-            </Marker>
-          );
-        })} */}
       <Source
         id="earthquakes"
         type="geojson"
