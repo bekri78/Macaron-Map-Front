@@ -32,9 +32,12 @@ export default function Map() {
     zoom: 11,
     bearing: 0,
     pitch: 50, // degré
+    transitionDuration: 500,
   });
 
   const onClick = (event: any) => {
+    if (event.feature) console.log(event.features);
+
     const feature = event.features[0];
     const clusterId = feature.properties.cluster_id;
 
@@ -44,7 +47,7 @@ export default function Map() {
       clusterId,
       (err: Error, zoom: number) => {
         if (err) {
-          return;
+          console.log(err);
         }
 
         setViewport({
@@ -52,6 +55,7 @@ export default function Map() {
           longitude: feature.geometry.coordinates[0],
           latitude: feature.geometry.coordinates[1],
           zoom,
+          transitionDuration: 500,
         });
       }
     );
